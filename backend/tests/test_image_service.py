@@ -1,5 +1,6 @@
 from pathlib import Path
 
+import pytest
 from PIL import Image
 
 from backend.app.services.image_service import validate_image
@@ -19,3 +20,21 @@ def test_validate_image():
     assert result["mode"] == "RGB"
 
     test_image.unlink()
+
+
+def test_image_too_small():
+    test_image = Path("backend/tests/test_small.png")
+
+    Image.new("RGB", (32, 32), "white").save(test_image)
+
+    with pytest.raises(ValueError, match="Imagen demasiado pequeña"):
+        validate_image(str(test_image))
+
+    test_image.unlink()
+
+
+def test_file_not_found():
+    test_image = "backend/tests/no_existe.png"
+
+    with pytest.raises(FileNotFoundError, match="No existe el archivo"):
+        validate_image(test_image)
